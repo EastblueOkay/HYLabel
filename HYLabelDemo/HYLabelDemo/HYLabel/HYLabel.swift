@@ -15,63 +15,63 @@ enum TapHandlerType : Int {
     case linkHandle = 3
 }
 
-public class HYLabel: UILabel {
+open class HYLabel: UILabel {
     
     // MARK:- 属性
     // 重写系统的属性
-    override public var text : String? {
+    override open var text : String? {
         didSet {
             prepareText()
         }
     }
     
-    override public var attributedText: NSAttributedString? {
+    override open var attributedText: NSAttributedString? {
         didSet {
             prepareText()
         }
     }
     
-    override public var font: UIFont! {
+    override open var font: UIFont! {
         didSet {
             prepareText()
         }
     }
     
-    override public var textColor: UIColor! {
+    override open var textColor: UIColor! {
         didSet {
             prepareText()
         }
     }
     
-    public var matchTextColor : UIColor = UIColor(red: 87 / 255.0, green: 196 / 255.0, blue: 251 / 255.0, alpha: 1.0) {
+    open var matchTextColor : UIColor = UIColor(red: 87 / 255.0, green: 196 / 255.0, blue: 251 / 255.0, alpha: 1.0) {
         didSet {
             prepareText()
         }
     }
     
     // 懒加载属性
-    private lazy var textStorage : NSTextStorage = NSTextStorage() // NSMutableAttributeString的子类
-    private lazy var layoutManager : NSLayoutManager = NSLayoutManager() // 布局管理者
-    private lazy var textContainer : NSTextContainer = NSTextContainer() // 容器,需要设置容器的大小
+    fileprivate lazy var textStorage : NSTextStorage = NSTextStorage() // NSMutableAttributeString的子类
+    fileprivate lazy var layoutManager : NSLayoutManager = NSLayoutManager() // 布局管理者
+    fileprivate lazy var textContainer : NSTextContainer = NSTextContainer() // 容器,需要设置容器的大小
     
     // 用于记录下标值
-    private lazy var linkRanges : [NSRange] = [NSRange]()
-    private lazy var userRanges : [NSRange] = [NSRange]()
-    private lazy var topicRanges : [NSRange] = [NSRange]()
+    fileprivate lazy var linkRanges : [NSRange] = [NSRange]()
+    fileprivate lazy var userRanges : [NSRange] = [NSRange]()
+    fileprivate lazy var topicRanges : [NSRange] = [NSRange]()
     
     // 用于记录用户选中的range
-    private var selectedRange : NSRange?
+    fileprivate var selectedRange : NSRange?
     
     // 用户记录点击还是松开
-    private var isSelected : Bool = false
+    fileprivate var isSelected : Bool = false
     
     // 闭包属性,用于回调
-    private var tapHandlerType : TapHandlerType = TapHandlerType.noneHandle
+    fileprivate var tapHandlerType : TapHandlerType = TapHandlerType.noneHandle
     
     public typealias HYTapHandler = (HYLabel, String, NSRange) -> Void
-    public var linkTapHandler : HYTapHandler?
-    public var topicTapHandler : HYTapHandler?
-    public var userTapHandler : HYTapHandler?
+    open var linkTapHandler : HYTapHandler?
+    open var topicTapHandler : HYTapHandler?
+    open var userTapHandler : HYTapHandler?
     
     // MARK:- 构造函数
     override init(frame: CGRect) {
@@ -87,7 +87,7 @@ public class HYLabel: UILabel {
     }
     
     // MARK:- 布局子控件
-    override public func layoutSubviews() {
+    override open func layoutSubviews() {
         super.layoutSubviews()
         
         // 设置容器的大小为Label的尺寸
@@ -95,29 +95,29 @@ public class HYLabel: UILabel {
     }
     
     // MARK:- 重写drawTextInRect方法
-    override public func drawTextInRect(rect: CGRect) {
+    override open func drawText(in rect: CGRect) {
         // 1.绘制背景
         if selectedRange != nil {
             // 2.0.确定颜色
-            let selectedColor = isSelected ? UIColor(white: 0.7, alpha: 0.2) : UIColor.clearColor()
+            let selectedColor = isSelected ? UIColor(white: 0.7, alpha: 0.2) : UIColor.clear
             
             // 2.1.设置颜色
             textStorage.addAttribute(NSBackgroundColorAttributeName, value: selectedColor, range: selectedRange!)
             
             // 2.2.绘制背景
-            layoutManager.drawBackgroundForGlyphRange(selectedRange!, atPoint: CGPoint(x: 0, y: 0))
+            layoutManager.drawBackground(forGlyphRange: selectedRange!, at: CGPoint(x: 0, y: 0))
         }
         
         // 2.绘制字形
         // 需要绘制的范围
         let range = NSRange(location: 0, length: textStorage.length)
-        layoutManager.drawGlyphsForGlyphRange(range, atPoint: CGPointZero)
+        layoutManager.drawGlyphs(forGlyphRange: range, at: CGPoint.zero)
     }
 }
 
 extension HYLabel {
     /// 准备文本系统
-    private func prepareTextSystem() {
+    fileprivate func prepareTextSystem() {
         // 0.准备文本
         prepareText()
         
@@ -128,14 +128,14 @@ extension HYLabel {
         layoutManager.addTextContainer(textContainer)
         
         // 3.让label可以和用户交互
-        userInteractionEnabled = true
+        isUserInteractionEnabled = true
         
         // 4.设置间距为0
         textContainer.lineFragmentPadding = 0
     }
     
     /// 准备文本
-    private func prepareText() {
+    fileprivate func prepareText() {
         // 1.准备字符串
         var attrString : NSAttributedString?
         if attributedText != nil {
@@ -188,7 +188,7 @@ extension HYLabel {
 
 // MARK:- 字符串匹配封装
 extension HYLabel {
-    private func getRanges(pattern : String) -> [NSRange]? {
+    fileprivate func getRanges(_ pattern : String) -> [NSRange]? {
         // 创建正则表达式对象
         guard let regex = try? NSRegularExpression(pattern: pattern, options: []) else {
             return nil
@@ -197,18 +197,18 @@ extension HYLabel {
         return getRangesFromResult(regex)
     }
     
-    private func getLinkRanges() -> [NSRange]? {
+    fileprivate func getLinkRanges() -> [NSRange]? {
         // 创建正则表达式
-        guard let detector = try? NSDataDetector(types: NSTextCheckingType.Link.rawValue) else {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
             return nil
         }
         
         return getRangesFromResult(detector)
     }
     
-    private func getRangesFromResult(regex : NSRegularExpression) -> [NSRange] {
+    fileprivate func getRangesFromResult(_ regex : NSRegularExpression) -> [NSRange] {
         // 1.匹配结果
-        let results = regex.matchesInString(textStorage.string, options: [], range: NSRange(location: 0, length: textStorage.length))
+        let results = regex.matches(in: textStorage.string, options: [], range: NSRange(location: 0, length: textStorage.length))
         
         // 2.遍历结果
         var ranges = [NSRange]()
@@ -223,25 +223,25 @@ extension HYLabel {
 
 // MARK:- 点击交互的封装
 extension HYLabel {
-    override public func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override open func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         // 0.记录点击
         isSelected = true
         
         // 1.获取用户点击的点
-        let selectedPoint = touches.first!.locationInView(self)
+        let selectedPoint = touches.first!.location(in: self)
         
         // 2.获取该点所在的字符串的range
         selectedRange = getSelectRange(selectedPoint)
         
         // 3.是否处理了事件
         if selectedRange == nil {
-            super.touchesBegan(touches, withEvent: event)
+            super.touchesBegan(touches, with: event)
         }
     }
     
-    override public func touchesEnded(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override open func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         if selectedRange == nil {
-            super.touchesBegan(touches, withEvent: event)
+            super.touchesBegan(touches, with: event)
             return
         }
         
@@ -252,7 +252,7 @@ extension HYLabel {
         setNeedsDisplay()
         
         // 3.取出内容
-        let contentText = (textStorage.string as NSString).substringWithRange(selectedRange!)
+        let contentText = (textStorage.string as NSString).substring(with: selectedRange!)
         
         // 3.回调
         switch tapHandlerType {
@@ -273,14 +273,14 @@ extension HYLabel {
         }
     }
     
-    private func getSelectRange(selectedPoint : CGPoint) -> NSRange? {
+    fileprivate func getSelectRange(_ selectedPoint : CGPoint) -> NSRange? {
         // 0.如果属性字符串为nil,则不需要判断
         if textStorage.length == 0 {
             return nil
         }
         
         // 1.获取选中点所在的下标值(index)
-        let index = layoutManager.glyphIndexForPoint(selectedPoint, inTextContainer: textContainer)
+        let index = layoutManager.glyphIndex(for: selectedPoint, in: textContainer)
         
         // 2.判断下标在什么内
         // 2.1.判断是否是一个链接
@@ -317,7 +317,7 @@ extension HYLabel {
 // MARK:- 补充
 extension HYLabel {
     /// 如果用户没有设置lineBreak,则所有内容会绘制到同一行中,因此需要主动设置
-    private func addLineBreak(attrString: NSAttributedString) -> NSMutableAttributedString {
+    fileprivate func addLineBreak(_ attrString: NSAttributedString) -> NSMutableAttributedString {
         let attrStringM = NSMutableAttributedString(attributedString: attrString)
         
         if attrStringM.length == 0 {
@@ -325,14 +325,14 @@ extension HYLabel {
         }
         
         var range = NSRange(location: 0, length: 0)
-        var attributes = attrStringM.attributesAtIndex(0, effectiveRange: &range)
+        var attributes = attrStringM.attributes(at: 0, effectiveRange: &range)
         var paragraphStyle = attributes[NSParagraphStyleAttributeName] as? NSMutableParagraphStyle
         
         if paragraphStyle != nil {
-            paragraphStyle!.lineBreakMode = NSLineBreakMode.ByWordWrapping
+            paragraphStyle!.lineBreakMode = NSLineBreakMode.byWordWrapping
         } else {
             paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle!.lineBreakMode = NSLineBreakMode.ByWordWrapping
+            paragraphStyle!.lineBreakMode = NSLineBreakMode.byWordWrapping
             attributes[NSParagraphStyleAttributeName] = paragraphStyle
             
             attrStringM.setAttributes(attributes, range: range)
